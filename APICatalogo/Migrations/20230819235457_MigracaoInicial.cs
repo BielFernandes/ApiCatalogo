@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace ApiCatalogo.Migrations
+namespace APICatalogo.Migrations
 {
     /// <inheritdoc />
     public partial class MigracaoInicial : Migration
@@ -19,16 +19,16 @@ namespace ApiCatalogo.Migrations
                 name: "Categorias",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
+                    CategoriaId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     Nome = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    ImageUrl = table.Column<string>(type: "longtext", nullable: true)
+                    ImagemUrl = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4")
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Categorias", x => x.Id);
+                    table.PrimaryKey("PK_Categorias", x => x.CategoriaId);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -42,29 +42,29 @@ namespace ApiCatalogo.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Descricao = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    Preco = table.Column<decimal>(type: "decimal(65,30)", nullable: false),
-                    ImageUrl = table.Column<string>(type: "longtext", nullable: true)
+                    Preco = table.Column<decimal>(type: "decimal(14,4)", nullable: false),
+                    ImagemUrl = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Estoque = table.Column<float>(type: "float", nullable: false),
                     DataCadastro = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    categoriaId = table.Column<int>(type: "int", nullable: false)
+                    CategoriaId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Produtos", x => x.ProdutoId);
                     table.ForeignKey(
-                        name: "FK_Produtos_Categorias_categoriaId",
-                        column: x => x.categoriaId,
+                        name: "FK_Produtos_Categorias_CategoriaId",
+                        column: x => x.CategoriaId,
                         principalTable: "Categorias",
-                        principalColumn: "Id",
+                        principalColumn: "CategoriaId",
                         onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Produtos_categoriaId",
+                name: "IX_Produtos_CategoriaId",
                 table: "Produtos",
-                column: "categoriaId");
+                column: "CategoriaId");
         }
 
         /// <inheritdoc />

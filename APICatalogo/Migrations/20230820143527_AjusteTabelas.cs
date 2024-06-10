@@ -2,10 +2,10 @@
 
 #nullable disable
 
-namespace ApiCatalogo.Migrations
+namespace APICatalogo.Migrations
 {
     /// <inheritdoc />
-    public partial class AddNotations : Migration
+    public partial class AjusteTabelas : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -39,13 +39,13 @@ namespace ApiCatalogo.Migrations
 
             migrationBuilder.UpdateData(
                 table: "Produtos",
-                keyColumn: "ImageUrl",
+                keyColumn: "ImagemUrl",
                 keyValue: null,
-                column: "ImageUrl",
+                column: "ImagemUrl",
                 value: "");
 
             migrationBuilder.AlterColumn<string>(
-                name: "ImageUrl",
+                name: "ImagemUrl",
                 table: "Produtos",
                 type: "varchar(300)",
                 maxLength: 300,
@@ -96,13 +96,13 @@ namespace ApiCatalogo.Migrations
 
             migrationBuilder.UpdateData(
                 table: "Categorias",
-                keyColumn: "ImageUrl",
+                keyColumn: "ImagemUrl",
                 keyValue: null,
-                column: "ImageUrl",
+                column: "ImagemUrl",
                 value: "");
 
             migrationBuilder.AlterColumn<string>(
-                name: "ImageUrl",
+                name: "ImagemUrl",
                 table: "Categorias",
                 type: "varchar(300)",
                 maxLength: 300,
@@ -137,7 +137,7 @@ namespace ApiCatalogo.Migrations
                 .OldAnnotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.AlterColumn<string>(
-                name: "ImageUrl",
+                name: "ImagemUrl",
                 table: "Produtos",
                 type: "longtext",
                 nullable: true,
@@ -170,7 +170,7 @@ namespace ApiCatalogo.Migrations
                 .OldAnnotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.AlterColumn<string>(
-                name: "ImageUrl",
+                name: "ImagemUrl",
                 table: "Categorias",
                 type: "longtext",
                 nullable: true,
