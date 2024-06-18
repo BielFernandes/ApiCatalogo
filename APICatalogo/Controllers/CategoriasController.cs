@@ -1,10 +1,11 @@
 ﻿using APICatalogo.DTOs;
+using APICatalogo.DTOs.Mappings;
 using APICatalogo.Models;
 using APICatalogo.Pagination;
 using APICatalogo.Repositories;
-using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using X.PagedList;
 
 namespace APICatalogo.Controllers;
 
@@ -13,58 +14,70 @@ namespace APICatalogo.Controllers;
 public class CategoriasController : ControllerBase
 {
     private readonly IUnitOfWork _uof;
-    private readonly IMapper _mapper;
     private readonly ILogger<CategoriasController> _logger;
 
     public CategoriasController(IUnitOfWork uof,
-        ILogger<CategoriasController> logger,
-        IMapper mapper)
+        ILogger<CategoriasController> logger)
     {
-        _uof = uof;
+
         _logger = logger;
-        _mapper = mapper;
+        _uof = uof;
     }
 
     [HttpGet]
-    public ActionResult<IEnumerable<CategoriaDTO>> Get()
+    public async Task<ActionResult<IEnumerable<CategoriaDTO>>> Get()
     {
-        var categorias = _uof.CategoriaRepository.GetAll();
+        var categorias = await _uof.CategoriaRepository.GetAllAsync();
 
         if (categorias is null)
-            return NotFound("Não encontrado");
+            return NotFound("Não existem categorias...");
 
-        var categoriasDto = _mapper.Map<List<CategoriaDTO>>(categorias);
+        var categoriasDto = categorias.ToCategoriaDTOList();
 
         return Ok(categoriasDto);
     }
 
     [HttpGet("pagination")]
-    public ActionResult<IEnumerable<CategoriaDTO>> Get([FromQuery] CategoriasParameters categoriasParameters)
+    public async Task<ActionResult<IEnumerable<CategoriaDTO>>> Get([FromQuery]
+                               CategoriasParameters categoriasParameters)
     {
-        var categorias = _uof.CategoriaRepository.GetCategorias(categoriasParameters);
+        var categorias = await _uof.CategoriaRepository.GetCategoriasAsync(categoriasParameters);
+        
+        return ObterCategorias(categorias);
+    }
 
-        var metadata = new
-        {
-            categorias.TotalCount,
-            categorias.PageSize,
-            categorias.CurrentPage,
-            categorias.TotalPages,
-            categorias.HasNext,
-            categorias.HasPrevious
-        };
+    [HttpGet("filter/nome/pagination")]
+    public async Task<ActionResult<IEnumerable<CategoriaDTO>>> GetCategoriasFiltradas(
+                                   [FromQuery] CategoriasFiltroNome categoriasFiltro)
+    {
+        var categoriasFiltradas = await _uof.CategoriaRepository
+                                     .GetCategoriasFiltroNomeAsync(categoriasFiltro);
 
-        Response.Headers.Append("X-Pagination", JsonConvert.SerializeObject(metadata));
-
-        var categoriasDto = _mapper.Map<IEnumerable<CategoriaDTO>>(categorias);
-
-        return Ok(categoriasDto);
+        return ObterCategorias(categoriasFiltradas);
 
     }
 
-    [HttpGet("{id:int}", Name = "ObterCategoria")]
-    public ActionResult<CategoriaDTO> Get(int id)
+    private ActionResult<IEnumerable<CategoriaDTO>> ObterCategorias(IPagedList<Categoria> categorias)
     {
-        var categoria = _uof.CategoriaRepository.Get(c => c.CategoriaId == id);
+        var metadata = new
+        {
+            categorias.Count,
+            categorias.PageSize,
+            categorias.PageCount,
+            categorias.TotalItemCount,
+            categorias.HasNextPage,
+            categorias.HasPreviousPage
+        };
+
+        Response.Headers.Append("X-Pagination", JsonConvert.SerializeObject(metadata));
+        var categoriasDto = categorias.ToCategoriaDTOList();
+        return Ok(categoriasDto);
+    }
+
+    [HttpGet("{id:int}", Name = "ObterCategoria")]
+    public async Task<ActionResult<CategoriaDTO>> Get(int id)
+    {
+        var categoria = await _uof.CategoriaRepository.GetAsync(c => c.CategoriaId == id);
 
         if (categoria is null)
         {
@@ -72,34 +85,34 @@ public class CategoriasController : ControllerBase
             return NotFound($"Categoria com id= {id} não encontrada...");
         }
 
-        var categoriaDTO = _mapper.Map<CategoriaDTO>(categoria);
+        var categoriaDto = categoria.ToCategoriaDTO();
 
-        return Ok(categoriaDTO);
+        return Ok(categoriaDto);
     }
 
     [HttpPost]
-    public ActionResult<CategoriaDTO> Post(CategoriaDTO categoriaDto)
+    public async Task<ActionResult<CategoriaDTO>> Post(CategoriaDTO categoriaDto)
     {
         if (categoriaDto is null)
         {
             _logger.LogWarning($"Dados inválidos...");
             return BadRequest("Dados inválidos");
         }
-        
-        var categoria = _mapper.Map<Categoria>(categoriaDto);
+
+        var categoria = categoriaDto.ToCategoria();
 
         var categoriaCriada = _uof.CategoriaRepository.Create(categoria);
-        _uof.Commit();
+        await _uof.Commit();
 
-        var categoriaCriadaDto = _mapper.Map<CategoriaDTO>(categoriaCriada);
+        var novaCategoriaDto = categoriaCriada.ToCategoriaDTO();
 
         return new CreatedAtRouteResult("ObterCategoria",
-            new { id = categoriaCriadaDto.CategoriaId },
-            categoriaCriadaDto);
+            new { id = novaCategoriaDto.CategoriaId },
+            novaCategoriaDto);
     }
 
     [HttpPut("{id:int}")]
-    public ActionResult<CategoriaDTO> Put(int id, CategoriaDTO categoriaDto)
+    public async Task<ActionResult<CategoriaDTO>> Put(int id, CategoriaDTO categoriaDto)
     {
         if (id != categoriaDto.CategoriaId)
         {
@@ -107,20 +120,20 @@ public class CategoriasController : ControllerBase
             return BadRequest("Dados inválidos");
         }
 
-        var categoria = _mapper.Map<Categoria>(categoriaDto);
+        var categoria = categoriaDto.ToCategoria();
 
-        var produtoAtualizado = _uof.CategoriaRepository.Update(categoria);
-        _uof.Commit();
+        var categoriaAtualizada = _uof.CategoriaRepository.Update(categoria);
+        await _uof.Commit();
 
-        var novaCategoriaDto = _mapper.Map<CategoriaDTO>(produtoAtualizado);
+        var categoriaAtualizadaDto = categoriaAtualizada.ToCategoriaDTO();
 
-        return Ok(novaCategoriaDto);
+        return Ok(categoriaAtualizadaDto);
     }
 
     [HttpDelete("{id:int}")]
-    public ActionResult<CategoriaDTO> Delete(int id)
+    public async Task<ActionResult<CategoriaDTO>> Delete(int id)
     {
-        var categoria = _uof.CategoriaRepository.Get(c => c.CategoriaId == id);
+        var categoria = await _uof.CategoriaRepository.GetAsync(c => c.CategoriaId == id);
 
         if (categoria is null)
         {
@@ -129,10 +142,10 @@ public class CategoriasController : ControllerBase
         }
 
         var categoriaExcluida = _uof.CategoriaRepository.Delete(categoria);
-        _uof.Commit();
+        await _uof.Commit();
 
-        var categoriaExcluidaDto = _mapper.Map<CategoriaDTO>(categoriaExcluida);
+        var categoriaExcluidaDto = categoriaExcluida.ToCategoriaDTO();
+
         return Ok(categoriaExcluidaDto);
-
     }
 }

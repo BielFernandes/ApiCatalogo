@@ -19,7 +19,6 @@ builder.Services.AddControllers(options =>
 })
 .AddNewtonsoftJson();
 
-
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -41,7 +40,7 @@ builder.Logging.AddProvider(new CustomLoggerProvider(new CustomLoggerProviderCon
     LogLevel = LogLevel.Information
 }));
 
-builder.Services.AddAutoMapper(typeof(MappingDTOProfile));
+builder.Services.AddAutoMapper(typeof(ProdutoDTOMappingProfile));
 
 var app = builder.Build();
 
